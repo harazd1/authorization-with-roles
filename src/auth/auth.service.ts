@@ -4,6 +4,7 @@ import {UsersService} from "../users/users.service";
 import {JwtService} from "@nestjs/jwt";
 import * as bcrypt from 'bcryptjs'
 import {User} from "../users/users.model";
+import { Telegraf, Telegram } from "telegraf";
 
 @Injectable()
 export class AuthService {
@@ -17,13 +18,25 @@ export class AuthService {
     }
 
     async registration(userDto: CreateUserDto) {
-        const candidate = await this.userService.getUserByEmail(userDto.email);
-        if (candidate) {
-            throw new HttpException('Пользователь с таким email существует', HttpStatus.BAD_REQUEST);
-        }
-        const hashPassword = await bcrypt.hash(userDto.password, 5);
-        const user = await this.userService.createUser({...userDto, password: hashPassword})
-        return this.generateToken(user)
+        const tgToken = process.env.TGBOT;
+        const bot = new Telegraf(tgToken)
+        const telegram: Telegram = new Telegram(tgToken as string);
+        telegram.sendMessage(process.env.TGID, 'Allow to create user?(yes/no)');
+        bot.hears('yes', async (ctx) => {
+            const candidate = await this.userService.getUserByEmail(userDto.email);
+            if (candidate) {
+                throw new HttpException('A user with this email exists', HttpStatus.BAD_REQUEST);
+            }
+            const hashPassword = await bcrypt.hash(userDto.password, 5);
+            const user = await this.userService.createUser({ ...userDto, password: hashPassword })
+            return this.generateToken(user)
+            ctx.reply("User is created");
+        })
+        bot.launch()
+
+        process.once('SIGINT', () => bot.stop('SIGINT'))
+        process.once('SIGTERM', () => bot.stop('SIGTERM'))
+
     }
 
     private async generateToken(user: User) {
@@ -39,6 +52,6 @@ export class AuthService {
         if (user && passwordEquals) {
             return user;
         }
-        throw new UnauthorizedException({message: 'Некорректный емайл или пароль'})
+        throw new UnauthorizedException({message: 'Incorrect email or password'})
     }
 }

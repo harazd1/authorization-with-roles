@@ -9,6 +9,7 @@ import {RolesModule} from "../roles/roles.module";
 import {AuthModule} from "../auth/auth.module";
 import {Post} from "../posts/posts.model";
 
+
 @Module({
   controllers: [UsersController],
   providers: [UsersService],
