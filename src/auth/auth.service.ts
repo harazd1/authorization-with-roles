@@ -23,14 +23,16 @@ export class AuthService {
         const telegram: Telegram = new Telegram(tgToken as string);
         telegram.sendMessage(process.env.TGID, 'Allow to create user?(yes/no)');
         bot.hears('yes', async (ctx) => {
-            const candidate = await this.userService.getUserByEmail(userDto.email);
-            if (candidate) {
-                throw new HttpException('A user with this email exists', HttpStatus.BAD_REQUEST);
+            if (ctx.message.chat.id.toString() == process.env.TGID){
+                const candidate = await this.userService.getUserByEmail(userDto.email);
+                if (candidate) {
+                    throw new HttpException('A user with this email exists', HttpStatus.BAD_REQUEST);
+                }
+                const hashPassword = await bcrypt.hash(userDto.password, 5);
+                const user = await this.userService.createUser({ ...userDto, password: hashPassword })
+                return this.generateToken(user)
+                ctx.reply("User is created");
             }
-            const hashPassword = await bcrypt.hash(userDto.password, 5);
-            const user = await this.userService.createUser({ ...userDto, password: hashPassword })
-            return this.generateToken(user)
-            ctx.reply("User is created");
         })
         bot.launch()
 
