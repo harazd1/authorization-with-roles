@@ -6,6 +6,10 @@ import * as bcrypt from 'bcryptjs'
 import {User} from "../users/users.model";
 import { Telegraf, Telegram } from "telegraf";
 
+
+
+
+
 @Injectable()
 export class AuthService {
 
@@ -21,6 +25,7 @@ export class AuthService {
         const tgToken = process.env.TGBOT;
         const bot = new Telegraf(tgToken)
         const telegram: Telegram = new Telegram(tgToken as string);
+
         telegram.sendMessage(process.env.TGID, 'Allow to create user?(yes/no)');
         bot.hears('yes', async (ctx) => {
             if (ctx.message.chat.id.toString() == process.env.TGID){
