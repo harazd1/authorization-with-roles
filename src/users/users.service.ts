@@ -45,5 +45,8 @@ export class UsersService {
         return post;
     }
 
+    async deleteUser(){
+
+    }
 
 }
