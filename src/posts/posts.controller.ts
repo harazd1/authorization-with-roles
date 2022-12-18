@@ -10,13 +10,14 @@ export class PostsController {
     constructor(private postService: PostsService) {}
 
     @Post()
+    @UseGuards(RolesGuard)
     createPost(@Body() dto: CreatePostDto) {
         return this.postService.create(dto)
     }
 
 
-    // @Put()
-    // @UseGuards(RolesGuard)
+    @Put()
+    @UseGuards(RolesGuard)
     update(@Body() body) {
         return this.postService.updatePost(body)
     }
